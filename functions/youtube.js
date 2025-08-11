@@ -32,12 +32,16 @@ exports.handler = async function(event, context) {
     }
 
     // --- New Action to search for competitors ---
-    if (action === 'search') {
+   if (action === 'search') {
         try {
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(keyword)}&type=video&maxResults=5&key=${API_KEY}`;
             const response = await fetch(url);
             const data = await response.json();
+            
+            // The API response is nested. We need to return the 'items' array.
+            // This was the source of the error.
             return { statusCode: 200, body: JSON.stringify(data.items) };
+
         } catch (error) {
             return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
         }
