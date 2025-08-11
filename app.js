@@ -253,37 +253,52 @@ document.addEventListener('DOMContentLoaded', () => {
         return Object.keys(wordFrequencies).sort((a, b) => wordFrequencies[b] - wordFrequencies[a]).slice(0, 10);
     }
     
-   function getAdvancedTranscriptAnalysis(text) {
-        // --- NEW: Normalize the text by removing line breaks ---
-        const normalizedText = text.replace(/(\r\n|\n|\r)/gm, " ").replace(/\[.*?\]/g, ""); // Also removes text in brackets like [Music]
+ function getAdvancedTranscriptAnalysis(text) {
+        // --- More robust text cleaning ---
+        const cleanedText = text.replace(/(\r\n|\n|\r)/gm, " ").replace(/\[.*?\]/g, "");
 
-        // Basic counts needed for calculations (now using normalizedText)
-        const sentences = normalizedText.match(/[\w|\)][.?!](\s|$)/g) || [];
-        const words = normalizedText.trim().split(/\s+/);
-        const syllables = (normalizedText.match(/[aeiouy]{1,2}/g) || []).length;
-
+        // --- Improved Sentence Counting ---
+        const sentences = cleanedText.split(/[.?!]+\s/).filter(s => s.length > 0);
         const numSentences = sentences.length > 0 ? sentences.length : 1;
+
+        // --- Improved Word Counting ---
+        const words = cleanedText.toLowerCase().replace(/[^a-z\s]/g, "").trim().split(/\s+/).filter(w => w.length > 0);
         const numWords = words.length > 0 ? words.length : 1;
         
-        // 1. Readability Score (Flesch-Kincaid formula)
-        const readabilityScore = Math.max(0, Math.round(206.835 - 1.015 * (numWords / numSentences) - 84.6 * (syllables / numWords)));
+        // --- Improved Syllable Counting Function ---
+        const countSyllables = (word) => {
+            word = word.toLowerCase();
+            if (word.length <= 3) return 1;
+            word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+            word = word.replace(/^y/, '');
+            const syllables = word.match(/[aeiouy]{1,2}/g);
+            return syllables ? syllables.length : 0;
+        };
 
-        // 2. Sentiment Analysis (simple keyword-based)
+        let totalSyllables = 0;
+        words.forEach(word => {
+            totalSyllables += countSyllables(word);
+        });
+        totalSyllables = totalSyllables > 0 ? totalSyllables : 1;
+        
+        // 1. Readability Score (Flesch-Kincaid formula)
+        const readabilityScore = Math.max(0, Math.round(206.835 - 1.015 * (numWords / numSentences) - 84.6 * (totalSyllables / numWords)));
+
+        // 2. Sentiment Analysis (no changes needed here)
         const positiveWords = ['love', 'amazing', 'best', 'great', 'awesome', 'beautiful', 'easy', 'fun', 'helpful', 'thanks'];
         const negativeWords = ['bad', 'hate', 'terrible', 'problem', 'difficult', 'issue', 'hard', 'boring'];
         let sentimentScore = 0;
         words.forEach(word => {
-            if (positiveWords.includes(word.toLowerCase())) sentimentScore++;
-            if (negativeWords.includes(word.toLowerCase())) sentimentScore--;
+            if (positiveWords.includes(word)) sentimentScore++;
+            if (negativeWords.includes(word)) sentimentScore--;
         });
         
-        // 3. Actionable Language Detection
+        // 3. Actionable Language Detection (no changes needed here)
         const actionWords = ['subscribe', 'like', 'comment', 'share', 'download', 'click', 'visit'];
-        const foundActionWords = actionWords.filter(actionWord => normalizedText.toLowerCase().includes(actionWord));
+        const foundActionWords = actionWords.filter(actionWord => cleanedText.toLowerCase().includes(actionWord));
 
         return { readabilityScore, sentimentScore, foundActionWords };
     }
-
     function displaySuggestions(suggestions, metrics) {
         let pillsHTML = suggestions.length > 0 ? suggestions.map(word => `<span class="pill">${word}</span>`).join('') : '<span>No unique keywords found.</span>';
         let actionWordsHTML = metrics.foundActionWords.length > 0 ? metrics.foundActionWords.map(word => `<span class="pill">${word}</span>`).join('') : '<span>None detected.</span>';
