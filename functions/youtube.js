@@ -1,6 +1,4 @@
-// This function needs `node-fetch`. If deploying to Netlify/Vercel, 
-// add it to your package.json: `npm install node-fetch`
- const fetch = require('node-fetch');
+const fetch = require('node-fetch');
 
 exports.handler = async function(event, context) {
     const { videoId, action, keyword } = JSON.parse(event.body);
@@ -31,21 +29,22 @@ exports.handler = async function(event, context) {
         }
     }
 
-    // --- New Action to search for competitors ---
-   if (action === 'search') {
+    if (action === 'search') {
         try {
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(keyword)}&type=video&maxResults=5&key=${API_KEY}`;
+            console.log('DEBUG: Calling YouTube API URL:', url); // Debugging log
+            
             const response = await fetch(url);
             const data = await response.json();
             
-            // The API response is nested. We need to return the 'items' array.
-            // This was the source of the error.
-            return { statusCode: 200, body: JSON.stringify(data.items) };
+            console.log('DEBUG: Received from YouTube API:', JSON.stringify(data, null, 2)); // Debugging log
 
+            return { statusCode: 200, body: JSON.stringify(data.items) };
         } catch (error) {
+            console.error('ERROR in search action:', error); // Debugging log
             return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
         }
     }
 
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid action.' }) };
-};   
+};
