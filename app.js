@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
         competeBtn.disabled = true;
         competeBtn.textContent = 'Analyzing...';
         competitorsContainer.innerHTML = '<div class="loader"></div>';
-        resultsContainer.innerHTML = ''; // Clear metadata results
+        resultsContainer.innerHTML = '';
 
         try {
             const userData = await fetchVideoData(videoId);
@@ -150,8 +150,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 keyword = userData.title.split(' ').slice(0, 3).join(' ');
             }
 
+            console.log('Searching for keyword:', keyword); // <-- Add this line
+
             const competitors = await fetchCompetitors(keyword);
+            
+            console.log('Received competitors:', competitors); // <-- Add this line
+            
             displayCompetitors(userData, competitors, keyword);
+
         } catch (error) {
             competitorsContainer.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
         } finally {
@@ -159,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
             competeBtn.textContent = 'Competitive Analysis';
         }
     }
-
     async function fetchCompetitors(keyword) {
         const endpoint = `/.netlify/functions/youtube`;
         const response = await fetch(endpoint, {
