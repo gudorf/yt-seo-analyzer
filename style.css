@@ -192,6 +192,66 @@ ul.checklist {
     line-height: 1;
     margin-bottom: 1rem;
 }
+/* --- Accordion Styles --- */
+.accordion-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.accordion {
+    background-color: #eee;
+    color: #444;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    border-radius: var(--border-radius);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.accordion:hover, .accordion.active {
+    background-color: #ddd;
+}
+
+.accordion:after {
+    content: '+';
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.accordion.active:after {
+    content: "−";
+}
+
+.panel {
+    padding: 0 18px;
+    background-color: white;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    border-radius: var(--border-radius);
+    border: 1px solid #ddd;
+    border-top: none;
+}
+
+.panel h4 {
+    color: var(--primary-color);
+    margin-top: 1.5rem;
+}
+
+.panel ul {
+    list-style: disc;
+    padding-left: 20px;
+}
 footer {
     text-align: center;
     padding: 1rem;

@@ -233,4 +233,20 @@ document.addEventListener('DOMContentLoaded', () => {
             scoreElement.innerHTML += '<span style="font-size: 1.5rem; color: #666;">/100</span>';
         }, 850);
     }
-});
+    // ... all your existing code ...
+
+    // --- Accordion Logic ---
+    const accordion = document.querySelector('.accordion');
+    if (accordion) {
+        accordion.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const panel = this.nextElementSibling;
+            if (panel.style.maxHeight) {
+                panel.style.maxHeight = null;
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+            }
+        });
+    }
+
+}); // This is the closing bracket for DOMContentLoaded
