@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube SEO Analyzer</title>
+    <meta name="theme-color" content="#c8232c"/>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>YouTube SEO Analyzer</h1>
+        <p>Evaluate your video's metadata for best practice compliance.</p>
+    </header>
+
+    <main>
+        <div class="input-container">
+            <input type="text" id="video-input" placeholder="Enter YouTube Video URL or ID">
+            <button id="analyze-btn">Analyze</button>
+        </div>
+
+        <div id="results-container">
+            <div id="placeholder" class="placeholder-content">
+                <div class="placeholder-icon">📈</div>
+                <h3>Ready to Optimize?</h3>
+                <p>Paste a YouTube video URL above to start your SEO audit.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Built for content creators. Current time is Mon Aug 11 2025.</p>
+    </footer>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('ServiceWorker registration successful'))
+                    .catch(err => console.log('ServiceWorker registration failed: ', err));
+            });
+        }
+    </script>
+</body>
+</html>

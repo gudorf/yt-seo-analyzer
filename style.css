@@ -1,0 +1,175 @@
+:root {
+    --primary-color: #c8232c;
+    --background-color: #f4f4f4;
+    --card-bg-color: #ffffff;
+    --text-color: #333;
+    --light-text-color: #666;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+main {
+    padding: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.input-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+#video-input {
+    flex-grow: 1;
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+}
+
+#analyze-btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#analyze-btn:hover {
+    background-color: #a01c23;
+}
+
+#analyze-btn:disabled {
+    background-color: #999;
+    cursor: not-allowed;
+}
+
+.loader {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.report-card {
+    background-color: var(--card-bg-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-top: 1.5rem;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1rem 1.5rem;
+    background-color: #f9f9f9;
+    border-bottom: 1px solid #eee;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+ul.checklist {
+    list-style: none;
+    padding: 0;
+}
+
+.checklist li {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.checklist .icon {
+    margin-right: 0.8rem;
+    font-size: 1.2rem;
+}
+
+.checklist .success { color: var(--success-color); }
+.checklist .warning { color: var(--warning-color); }
+
+.feedback-text .suggestion {
+    font-style: italic;
+    color: var(--light-text-color);
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.overall-score {
+    text-align: center;
+    padding: 1rem;
+    background: var(--card-bg-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.overall-score h2 {
+    margin: 0 0 0.5rem 0;
+    color: var(--primary-color);
+}
+
+.overall-score .score-value {
+    font-size: 3rem;
+    font-weight: bold;
+    color: var(--text-color);
+}
+.placeholder-content {
+    text-align: center;
+    margin-top: 4rem;
+    color: #888;
+}
+.placeholder-icon {
+    font-size: 4rem;
+    line-height: 1;
+    margin-bottom: 1rem;
+}
+footer {
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: var(--light-text-color);
+}
