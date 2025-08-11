@@ -253,15 +253,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return Object.keys(wordFrequencies).sort((a, b) => wordFrequencies[b] - wordFrequencies[a]).slice(0, 10);
     }
     
-    function getAdvancedTranscriptAnalysis(text) {
-        const sentences = text.match(/[\w|\)][.?!](\s|$)/g) || [];
-        const words = text.trim().split(/\s+/);
-        const syllables = (text.match(/[aeiouy]{1,2}/g) || []).length;
+   function getAdvancedTranscriptAnalysis(text) {
+        // --- NEW: Normalize the text by removing line breaks ---
+        const normalizedText = text.replace(/(\r\n|\n|\r)/gm, " ").replace(/\[.*?\]/g, ""); // Also removes text in brackets like [Music]
+
+        // Basic counts needed for calculations (now using normalizedText)
+        const sentences = normalizedText.match(/[\w|\)][.?!](\s|$)/g) || [];
+        const words = normalizedText.trim().split(/\s+/);
+        const syllables = (normalizedText.match(/[aeiouy]{1,2}/g) || []).length;
+
         const numSentences = sentences.length > 0 ? sentences.length : 1;
         const numWords = words.length > 0 ? words.length : 1;
         
+        // 1. Readability Score (Flesch-Kincaid formula)
         const readabilityScore = Math.max(0, Math.round(206.835 - 1.015 * (numWords / numSentences) - 84.6 * (syllables / numWords)));
 
+        // 2. Sentiment Analysis (simple keyword-based)
         const positiveWords = ['love', 'amazing', 'best', 'great', 'awesome', 'beautiful', 'easy', 'fun', 'helpful', 'thanks'];
         const negativeWords = ['bad', 'hate', 'terrible', 'problem', 'difficult', 'issue', 'hard', 'boring'];
         let sentimentScore = 0;
@@ -270,8 +277,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (negativeWords.includes(word.toLowerCase())) sentimentScore--;
         });
         
+        // 3. Actionable Language Detection
         const actionWords = ['subscribe', 'like', 'comment', 'share', 'download', 'click', 'visit'];
-        const foundActionWords = actionWords.filter(actionWord => text.toLowerCase().includes(actionWord));
+        const foundActionWords = actionWords.filter(actionWord => normalizedText.toLowerCase().includes(actionWord));
 
         return { readabilityScore, sentimentScore, foundActionWords };
     }
