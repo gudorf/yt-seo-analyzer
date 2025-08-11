@@ -32,16 +32,14 @@ exports.handler = async function(event, context) {
     if (action === 'search') {
         try {
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(keyword)}&type=video&maxResults=5&key=${API_KEY}`;
-            console.log('DEBUG: Calling YouTube API URL:', url); // Debugging log
-            
             const response = await fetch(url);
             const data = await response.json();
             
-            console.log('DEBUG: Received from YouTube API:', JSON.stringify(data, null, 2)); // Debugging log
+            // This is the crucial part: return the array of items.
+            const items = data.items;
+            return { statusCode: 200, body: JSON.stringify(items) };
 
-            return { statusCode: 200, body: JSON.stringify(data.items) };
         } catch (error) {
-            console.error('ERROR in search action:', error); // Debugging log
             return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
         }
     }
