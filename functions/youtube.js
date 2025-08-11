@@ -1,53 +1,47 @@
 // This function needs `node-fetch`. If deploying to Netlify/Vercel, 
 // add it to your package.json: `npm install node-fetch`
-const fetch = require('node-fetch');
+ const fetch = require('node-fetch');
 
 exports.handler = async function(event, context) {
-    if (event.httpMethod !== 'POST') {
-        return { statusCode: 405, body: 'Method Not Allowed' };
+    const { videoId, action, keyword } = JSON.parse(event.body);
+    const API_KEY = process.env.YOUTUBE_API_KEY;
+
+    if (!API_KEY) {
+        return { statusCode: 500, body: JSON.stringify({ error: 'API key is not configured.' }) };
     }
 
-    try {
-        const { videoId } = JSON.parse(event.body);
-        const API_KEY = process.env.YOUTUBE_API_KEY;
-
-        if (!API_KEY) {
-            throw new Error('API key is not configured.');
-        }
-
-        const url = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails&key=${API_KEY}`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.items.length === 0) {
-            return {
-                statusCode: 404,
-                body: JSON.stringify({ error: 'Video not found.' })
+    if (action === 'analyze') {
+        try {
+            const url = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails&key=${API_KEY}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            if (data.items.length === 0) return { statusCode: 404, body: JSON.stringify({ error: 'Video not found.' }) };
+            
+            const item = data.items[0];
+            const requiredData = {
+                title: item.snippet.title,
+                description: item.snippet.description,
+                tags: item.snippet.tags,
+                duration: item.contentDetails.duration,
+                thumbnail: item.snippet.thumbnails.high.url
             };
+            return { statusCode: 200, body: JSON.stringify(requiredData) };
+        } catch (error) {
+            return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
         }
-
-        const snippet = data.items[0].snippet;
-        const contentDetails = data.items[0].contentDetails;
-        
-        const requiredData = {
-            title: snippet.title,
-            description: snippet.description,
-            tags: snippet.tags,
-            duration: contentDetails.duration
-        };
-        
-        return {
-            statusCode: 200,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(requiredData)
-        };
-
-    } catch (error) {
-        console.error('Error in serverless function:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: error.message || 'An internal server error occurred.' })
-        };
     }
-};
+
+    // --- New Action to search for competitors ---
+    if (action === 'search') {
+        try {
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(keyword)}&type=video&maxResults=5&key=${API_KEY}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return { statusCode: 200, body: JSON.stringify(data.items) };
+        } catch (error) {
+            return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
+        }
+    }
+
+    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid action.' }) };
+};   

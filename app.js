@@ -2,7 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Element Selectors ---
     const videoInput = document.getElementById('video-input');
     const analyzeBtn = document.getElementById('analyze-btn');
+    const competeBtn = document.getElementById('compete-btn');
     const resultsContainer = document.getElementById('results-container');
+    const competitorsContainer = document.getElementById('competitors-container');
     const analyzeTranscriptBtn = document.getElementById('analyze-transcript-btn');
     const transcriptInput = document.getElementById('transcript-input');
     const suggestionsContainerLive = document.getElementById('suggestions-container-live');
@@ -25,6 +27,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (competeBtn) {
+        competeBtn.addEventListener('click', async () => {
+            const input = videoInput.value.trim();
+            if (!input) {
+                alert('Please enter a YouTube Video URL or ID first.');
+                return;
+            }
+            const videoId = parseYouTubeId(input);
+            if (!videoId) {
+                alert('Could not find a valid YouTube Video ID in the input.');
+                return;
+            }
+            await runCompetitiveAnalysis(videoId);
+        });
+    }
+
     if (analyzeTranscriptBtn) {
         analyzeTranscriptBtn.addEventListener('click', () => {
             const transcriptText = transcriptInput.value;
@@ -32,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Please paste a transcript into the text area first.');
                 return;
             }
-            
             const suggestions = analyzeTranscript(transcriptText);
             const advancedMetrics = getAdvancedTranscriptAnalysis(transcriptText);
             displaySuggestions(suggestions, advancedMetrics);
@@ -88,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         analyzeBtn.disabled = true;
         analyzeBtn.textContent = 'Analyzing...';
         resultsContainer.innerHTML = '<div class="loader"></div>';
+        competitorsContainer.innerHTML = ''; // Clear competitors
 
         try {
             const videoData = await fetchVideoData(videoId);
@@ -115,6 +133,45 @@ document.addEventListener('DOMContentLoaded', () => {
             analyzeBtn.disabled = false;
             analyzeBtn.textContent = 'Analyze Metadata';
         }
+    }
+
+    async function runCompetitiveAnalysis(videoId) {
+        competeBtn.disabled = true;
+        competeBtn.textContent = 'Analyzing...';
+        competitorsContainer.innerHTML = '<div class="loader"></div>';
+        resultsContainer.innerHTML = ''; // Clear metadata results
+
+        try {
+            const userData = await fetchVideoData(videoId);
+            let keyword = '';
+            if (userData.tags && userData.tags.length > 0) {
+                keyword = userData.tags[0];
+            } else {
+                keyword = userData.title.split(' ').slice(0, 3).join(' ');
+            }
+
+            const competitors = await fetchCompetitors(keyword);
+            displayCompetitors(userData, competitors, keyword);
+        } catch (error) {
+            competitorsContainer.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
+        } finally {
+            competeBtn.disabled = false;
+            competeBtn.textContent = 'Competitive Analysis';
+        }
+    }
+
+    async function fetchCompetitors(keyword) {
+        const endpoint = `/.netlify/functions/youtube`;
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'search', keyword: keyword }),
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to fetch competitors.');
+        }
+        return await response.json();
     }
 
     // --- Evaluation Logic ---
@@ -241,6 +298,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 850);
     }
 
+    function displayCompetitors(userData, competitors, keyword) {
+        const userCard = { isUser: true, title: userData.title, thumbnail: userData.thumbnail };
+        const competitorCards = competitors.map(item => ({
+            isUser: false,
+            title: item.snippet.title,
+            thumbnail: item.snippet.thumbnails.high.url,
+        }));
+        const allCards = [userCard, ...competitorCards].sort(() => Math.random() - 0.5);
+        const cardsHTML = allCards.map(card => `
+            <div class="competitor-card ${card.isUser ? 'is-user' : ''}">
+                <img src="${card.thumbnail}" alt="Video thumbnail">
+                <div class="title">${card.title}</div>
+            </div>`).join('');
+        competitorsContainer.innerHTML = `
+            <div class="competitors-gallery">
+                <h3>Top 5 search results for "${keyword}"</h3>
+                <div class="competitors-grid">${cardsHTML}</div>
+            </div>`;
+    }
+
     function analyzeTranscript(text) {
         const commonWords = new Set(['the', 'a', 'an', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'of', 'in', 'out', 'is', 'are', 'was', 'were', 'be', 'being', 'been', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how', 'so', 'also', 'about', 'like', 'just', 'gonna', 'really', 's']);
         const words = text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(/\s+/);
@@ -253,19 +330,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return Object.keys(wordFrequencies).sort((a, b) => wordFrequencies[b] - wordFrequencies[a]).slice(0, 10);
     }
     
- function getAdvancedTranscriptAnalysis(text) {
-        // --- More robust text cleaning ---
+    function getAdvancedTranscriptAnalysis(text) {
         const cleanedText = text.replace(/(\r\n|\n|\r)/gm, " ").replace(/\[.*?\]/g, "");
-
-        // --- Improved Sentence Counting ---
         const sentences = cleanedText.split(/[.?!]+\s/).filter(s => s.length > 0);
         const numSentences = sentences.length > 0 ? sentences.length : 1;
-
-        // --- Improved Word Counting ---
         const words = cleanedText.toLowerCase().replace(/[^a-z\s]/g, "").trim().split(/\s+/).filter(w => w.length > 0);
         const numWords = words.length > 0 ? words.length : 1;
-        
-        // --- Improved Syllable Counting Function ---
         const countSyllables = (word) => {
             word = word.toLowerCase();
             if (word.length <= 3) return 1;
@@ -274,17 +344,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const syllables = word.match(/[aeiouy]{1,2}/g);
             return syllables ? syllables.length : 0;
         };
-
         let totalSyllables = 0;
-        words.forEach(word => {
-            totalSyllables += countSyllables(word);
-        });
+        words.forEach(word => { totalSyllables += countSyllables(word); });
         totalSyllables = totalSyllables > 0 ? totalSyllables : 1;
-        
-        // 1. Readability Score (Flesch-Kincaid formula)
         const readabilityScore = Math.max(0, Math.round(206.835 - 1.015 * (numWords / numSentences) - 84.6 * (totalSyllables / numWords)));
-
-        // 2. Sentiment Analysis (no changes needed here)
         const positiveWords = ['love', 'amazing', 'best', 'great', 'awesome', 'beautiful', 'easy', 'fun', 'helpful', 'thanks'];
         const negativeWords = ['bad', 'hate', 'terrible', 'problem', 'difficult', 'issue', 'hard', 'boring'];
         let sentimentScore = 0;
@@ -292,33 +355,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (positiveWords.includes(word)) sentimentScore++;
             if (negativeWords.includes(word)) sentimentScore--;
         });
-        
-        // 3. Actionable Language Detection (no changes needed here)
         const actionWords = ['subscribe', 'like', 'comment', 'share', 'download', 'click', 'visit'];
         const foundActionWords = actionWords.filter(actionWord => cleanedText.toLowerCase().includes(actionWord));
-
         return { readabilityScore, sentimentScore, foundActionWords };
     }
+
     function displaySuggestions(suggestions, metrics) {
         let pillsHTML = suggestions.length > 0 ? suggestions.map(word => `<span class="pill">${word}</span>`).join('') : '<span>No unique keywords found.</span>';
         let actionWordsHTML = metrics.foundActionWords.length > 0 ? metrics.foundActionWords.map(word => `<span class="pill">${word}</span>`).join('') : '<span>None detected.</span>';
-
         suggestionsContainerLive.className = 'keywords-suggestions';
         suggestionsContainerLive.innerHTML = `
             <h3>Advanced Transcript Analysis</h3>
-            
             <div class="metrics-grid">
                 <div><strong>Readability Score:</strong> ${metrics.readabilityScore} <span class="light-text">(60-80 is ideal)</span></div>
                 <div><strong>Sentiment Score:</strong> ${metrics.sentimentScore > 0 ? `+${metrics.sentimentScore}` : metrics.sentimentScore} <span class="light-text">(Positive/Negative tone)</span></div>
             </div>
-
             <div class="action-words">
                 <strong>Actionable Language Detected:</strong>
                 <div>${actionWordsHTML}</div>
             </div>
-
             <hr style="margin: 1.5rem 0;">
-
             <h4>Suggested Keywords & Topics</h4>
             <p class="light-text">Based on your transcript, consider using these terms:</p>
             <div>${pillsHTML}</div>`;
