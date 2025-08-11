@@ -21,11 +21,17 @@ body {
 
 header {
     background-color: var(--card-bg-color);
-    color: var(--text-color);
-    padding: 1rem 1.5rem;
+    border-bottom: 5px solid var(--primary-color);
+    padding: 1rem 1.5rem; /* Add padding here for mobile */
+    display: flex;
+    justify-content: center; /* Center the inner container */
+}
+
+.header-content {
     display: flex;
     align-items: center;
-    border-bottom: 5px solid var(--primary-color); /* New border for color accent */
+    width: 100%;
+    max-width: 800px; /* Match the max-width of the main content */
 }
 
 .header-logo {
@@ -36,7 +42,9 @@ header {
 .header-text h1 {
     margin: 0;
     font-size: 1.8rem;
+    color: var(--text-color); /* Ensure text color is set */
 }
+
 .header-text p {
     margin: 0;
     color: var(--light-text-color);
