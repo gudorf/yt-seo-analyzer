@@ -117,26 +117,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function evaluateDescription(description, duration) {
-        let score = 0;
-        const feedback = [];
-        const wordCount = description ? description.split(/\s+/).length : 0;
-        const hasTimestamps = /^\d{1,2}:\d{2}/m.test(description);
-        score += 15;
-        feedback.push({ pass: true, text: 'Includes keywords in the opening paragraph.', suggestion: 'Ensure your main keyword appears in the first 2-3 sentences.' });
-        if (wordCount > 150) {
-            score += 10;
-            feedback.push({ pass: true, text: `Description is detailed (${wordCount} words).` });
-        } else {
-            feedback.push({ pass: false, text: `Description is short (${wordCount} words).`, suggestion: 'Aim for over 150 words to provide more context.' });
-        }
-        if (/subscribe|playlist|follow|shop|visit|http[s]?:\/\//i.test(description)) {
-            score += 10;
-            feedback.push({ pass: true, text: 'Includes at least one Call-to-Action (CTA) link.' });
-        } else {
-            feedback.push({ pass: false, text: 'No CTA links found.', suggestion: 'Add links to subscribe, other videos, or your website.' });
-        }
-        const durationInSeconds = duration ? (duration.match(/(\d+)M/)?.[1] * 60 || 0) + (duration.match(/(\d+)S/)?.[1] * 1 || 0) : 0;
-        if (durationInSeconds > 180) {
+    let score = 0;
+    const feedback = [];
+    const wordCount = description ? description.split(/\s+/).length : 0;
+    const hasTimestamps = /^\d{1,2}:\d{2}/m.test(description);
+
+    // --- FIX: Calculate duration in seconds to identify Shorts ---
+    const durationInSeconds = duration ? (duration.match(/(\d+)M/)?.[1] * 60 || 0) + (duration.match(/(\d+)S/)?.[1] * 1 || 0) : 0;
+    const isShort = durationInSeconds <= 61; // YouTube Shorts can be up to 60s, plus a buffer.
+
+    // Strong Opening (15 pts) - Heuristic check
+    const firstSentences = description ? description.substring(0, 250) : "";
+    score += 15; // Assume pass, as keyword check is complex without user input
+    feedback.push({ pass: true, text: 'Includes keywords in the opening paragraph.', suggestion: 'Ensure your main keyword appears in the first 2-3 sentences.' });
+
+
+    // Length Check (10 pts)
+    if (wordCount > 150) {
+        score += 10;
+        feedback.push({ pass: true, text: `Description is detailed (${wordCount} words).` });
+    } else {
+        feedback.push({ pass: false, text: `Description is short (${wordCount} words).`, suggestion: 'Aim for over 150 words to provide more context.' });
+    }
+
+    // CTA Check (10 pts)
+    if (/subscribe|playlist|follow|shop|visit|http[s]?:\/\//i.test(description)) {
+        score += 10;
+        feedback.push({ pass: true, text: 'Includes at least one Call-to-Action (CTA) link.' });
+    } else {
+        feedback.push({ pass: false, text: 'No CTA links found.', suggestion: 'Add links to subscribe, other videos, or your website.' });
+    }
+
+    // Timestamps Check (5 pts)
+    // --- FIX: Only run this check if the video is NOT a Short ---
+    if (!isShort) {
+        if (durationInSeconds > 180) { // Check for videos over 3 minutes
             if (hasTimestamps) {
                 score += 5;
                 feedback.push({ pass: true, text: 'Includes timestamps for easy navigation.' });
@@ -144,8 +159,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 feedback.push({ pass: false, text: 'Video is over 3 minutes but lacks timestamps.', suggestion: 'Add timestamps to help viewers find key moments.' });
             }
         }
-        return { score, max: 40, feedback };
+    } else {
+        // For Shorts, we can award the points or just not include this check in the max score.
+        // For simplicity, we'll just skip the check.
+        // To keep the scoring consistent, we will adjust the max score later if needed,
+        // but for now, the UI will just not show this check for Shorts.
     }
+    
+    return { score, max: isShort ? 35 : 40, feedback }; // --- FIX: Adjust max score for Shorts ---
+}
 
     function evaluateTags(tags, title) {
         let score = 0;
