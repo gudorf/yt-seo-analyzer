@@ -32,8 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Please paste a transcript into the text area first.');
                 return;
             }
+            
             const suggestions = analyzeTranscript(transcriptText);
-            displaySuggestions(suggestions);
+            const advancedMetrics = getAdvancedTranscriptAnalysis(transcriptText);
+            displaySuggestions(suggestions, advancedMetrics);
         });
     }
 
@@ -250,13 +252,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return Object.keys(wordFrequencies).sort((a, b) => wordFrequencies[b] - wordFrequencies[a]).slice(0, 10);
     }
+    
+    function getAdvancedTranscriptAnalysis(text) {
+        const sentences = text.match(/[\w|\)][.?!](\s|$)/g) || [];
+        const words = text.trim().split(/\s+/);
+        const syllables = (text.match(/[aeiouy]{1,2}/g) || []).length;
+        const numSentences = sentences.length > 0 ? sentences.length : 1;
+        const numWords = words.length > 0 ? words.length : 1;
+        
+        const readabilityScore = Math.max(0, Math.round(206.835 - 1.015 * (numWords / numSentences) - 84.6 * (syllables / numWords)));
 
-    function displaySuggestions(suggestions) {
-        let pillsHTML = suggestions.map(word => `<span class="pill">${word}</span>`).join('');
+        const positiveWords = ['love', 'amazing', 'best', 'great', 'awesome', 'beautiful', 'easy', 'fun', 'helpful', 'thanks'];
+        const negativeWords = ['bad', 'hate', 'terrible', 'problem', 'difficult', 'issue', 'hard', 'boring'];
+        let sentimentScore = 0;
+        words.forEach(word => {
+            if (positiveWords.includes(word.toLowerCase())) sentimentScore++;
+            if (negativeWords.includes(word.toLowerCase())) sentimentScore--;
+        });
+        
+        const actionWords = ['subscribe', 'like', 'comment', 'share', 'download', 'click', 'visit'];
+        const foundActionWords = actionWords.filter(actionWord => text.toLowerCase().includes(actionWord));
+
+        return { readabilityScore, sentimentScore, foundActionWords };
+    }
+
+    function displaySuggestions(suggestions, metrics) {
+        let pillsHTML = suggestions.length > 0 ? suggestions.map(word => `<span class="pill">${word}</span>`).join('') : '<span>No unique keywords found.</span>';
+        let actionWordsHTML = metrics.foundActionWords.length > 0 ? metrics.foundActionWords.map(word => `<span class="pill">${word}</span>`).join('') : '<span>None detected.</span>';
+
         suggestionsContainerLive.className = 'keywords-suggestions';
         suggestionsContainerLive.innerHTML = `
-            <h3>Suggested Keywords & Topics</h3>
-            <p>Based on your transcript, consider using these terms:</p>
+            <h3>Advanced Transcript Analysis</h3>
+            
+            <div class="metrics-grid">
+                <div><strong>Readability Score:</strong> ${metrics.readabilityScore} <span class="light-text">(60-80 is ideal)</span></div>
+                <div><strong>Sentiment Score:</strong> ${metrics.sentimentScore > 0 ? `+${metrics.sentimentScore}` : metrics.sentimentScore} <span class="light-text">(Positive/Negative tone)</span></div>
+            </div>
+
+            <div class="action-words">
+                <strong>Actionable Language Detected:</strong>
+                <div>${actionWordsHTML}</div>
+            </div>
+
+            <hr style="margin: 1.5rem 0;">
+
+            <h4>Suggested Keywords & Topics</h4>
+            <p class="light-text">Based on your transcript, consider using these terms:</p>
             <div>${pillsHTML}</div>`;
     }
 });
