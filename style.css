@@ -286,14 +286,17 @@ ul.checklist {
     display: block;
     margin: 1rem auto 0 auto;
 }
-footefooter {
+footer {
     text-align: center;
     padding: 1.5rem;
     margin-top: 3rem;
     font-size: 0.9rem;
     color: var(--light-text-color);
     background-color: var(--card-bg-color);
-    border-top: 5px solid var(--primary-color); /* Matches the header's border */
+    border-top: 5px solid var(--primary-color); /* Adds the green bar */
+    display: flex; /* Added for centering */
+    align-items: center; /* Added for centering */
+    justify-content: center; /* Added for centering */
 }
 
 footer p {

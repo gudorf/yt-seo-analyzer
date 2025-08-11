@@ -10,7 +10,7 @@
     <script src="app.js" defer></script>
 </head>
 <body>
-   <header>
+    <header>
         <div class="header-content">
             <img src="images/TGG_Zoco_Logo_Colored-Blk (1).png" alt="ZOCO Logo" class="header-logo">
             <div class="header-text">
@@ -23,7 +23,7 @@
     <main>
         <div class="input-container">
             <input type="text" id="video-input" placeholder="Enter YouTube Video URL or ID">
-            <button id="analyze-btn">Analyze</button>
+            <button id="analyze-btn">Analyze Metadata</button>
         </div>
 
         <div id="results-container">
@@ -34,7 +34,8 @@
             </div>
         </div>
     </main>
-</main> <div class="transcript-section">
+
+    <div class="transcript-section">
         <h3>Keyword & Topic Discovery</h3>
         <p>Paste your video transcript below to get keyword suggestions.</p>
         <textarea id="transcript-input" placeholder="Paste full video transcript here..."></textarea>
@@ -44,43 +45,6 @@
     <div id="suggestions-container-live">
         </div>
 
-    <div class="accordion-container"> ```
-        </div>
-        
-/* --- Transcript Analysis Styles --- */
-.transcript-section {
-    max-width: 800px;
-    margin: 3rem auto 0 auto;
-    padding: 0 1.5rem;
-}
-
-.transcript-section h3 {
-    text-align: center;
-    color: var(--primary-color);
-}
-
-.transcript-section p {
-    text-align: center;
-    color: var(--light-text-color);
-    margin-bottom: 1.5rem;
-}
-
-#transcript-input {
-    width: 100%;
-    height: 200px;
-    padding: 1rem;
-    border: 1px solid #ccc;
-    border-radius: var(--border-radius);
-    font-size: 1rem;
-    font-family: inherit;
-    box-sizing: border-box;
-    resize: vertical;
-}
-
-#analyze-transcript-btn {
-    display: block;
-    margin: 1rem auto 0 auto;
-}
     <div class="accordion-container">
         <button class="accordion">How is the score determined?</button>
         <div class="panel">

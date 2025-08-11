@@ -212,8 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- FIX: Rendering logic is now correctly structured.
-    function displayResults(results, totalScore) {
-        // --- FIX: Helper functions are defined *before* being used.
+   function displayResults(results, totalScore) {
         const createChecklistItem = ({ pass, text, suggestion }) => `
             <li class="${pass ? 'success' : 'warning'}">
                 <span class="icon">${pass ? '✅' : '⚠️'}</span>
@@ -237,6 +236,22 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
+        resultsContainer.innerHTML = `
+            <div class="overall-score">
+                <h2>Overall Compliance Score</h2>
+                <div class="score-value" id="total-score-value"></div>
+            </div>
+            ${createReportCard('Title Analysis', results.title)}
+            ${createReportCard('Description Analysis', results.description)}
+            ${createReportCard('Keywords / Tags Analysis', results.tags)} 
+        `; // This last line was likely the source of the error.
+
+        const scoreElement = document.getElementById('total-score-value');
+        animateValue(scoreElement, 0, totalScore, 800);
+        setTimeout(() => {
+            scoreElement.innerHTML += '<span style="font-size: 1.5rem; color: #666;">/100</span>';
+        }, 850);
+    }
         // --- FIX: resultsContainer is only updated ONCE.
         resultsContainer.innerHTML = `
             <div class="overall-score">
@@ -256,7 +271,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 850);
     }
     // ... all your existing code ...
+// --- New Transcript Analysis Logic ---
+    const analyzeTranscriptBtn = document.getElementById('analyze-transcript-btn');
+    const transcriptInput = document.getElementById('transcript-input');
+    const suggestionsContainerLive = document.getElementById('suggestions-container-live');
 
+    if (analyzeTranscriptBtn) {
+        analyzeTranscriptBtn.addEventListener('click', () => {
+            const transcriptText = transcriptInput.value;
+            if (!transcriptText || transcriptText.trim() === '') {
+                alert('Please paste a transcript into the text area first.');
+                return;
+            }
+            
+            const suggestions = analyzeTranscript(transcriptText);
+            displaySuggestions(suggestions);
+        });
+    }
+
+    function analyzeTranscript(text) {
+        const commonWords = new Set(['the', 'a', 'an', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'of', 'in', 'out', 'is', 'are', 'was', 'were', 'be', 'being', 'been', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how', 'so', 'also', 'about', 'like', 'just', 'gonna', 'really', 's']);
+        const words = text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").split(/\s+/);
+        
+        const wordFrequencies = {};
+        for (const word of words) {
+            if (!commonWords.has(word) && word.length > 2) {
+                wordFrequencies[word] = (wordFrequencies[word] || 0) + 1;
+            }
+        }
+        
+        return Object.keys(wordFrequencies)
+            .sort((a, b) => wordFrequencies[b] - wordFrequencies[a])
+            .slice(0, 10);
+    }
+
+    function displaySuggestions(suggestions) {
+        let pillsHTML = suggestions.map(word => `<span class="pill">${word}</span>`).join('');
+        
+        suggestionsContainerLive.className = 'keywords-suggestions';
+        suggestionsContainerLive.innerHTML = `
+            <h3>Suggested Keywords & Topics</h3>
+            <p>Based on your transcript, consider using these terms:</p>
+            <div>${pillsHTML}</div>
+        `;
+    }
+
+    // --- Accordion Logic ---
     // --- Accordion Logic ---
     const accordion = document.querySelector('.accordion');
     if (accordion) {
