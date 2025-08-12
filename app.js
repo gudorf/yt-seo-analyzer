@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 keyword = userData.title.split(' ').slice(0, 3).join(' ');
             }
 
-            const competitors = await fetchCompetitors(keyword);
+            const competitors = await fetchCompetitors(keyword, videoId);
             displayCompetitors(userData, competitors, keyword);
         } catch (error) {
             competitorsContainer.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
@@ -160,12 +160,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function fetchCompetitors(keyword) {
+    async function fetchCompetitors(keyword, videoId) {
         const endpoint = `/.netlify/functions/youtube`;
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'search', keyword: keyword }),
+            body: JSON.stringify({ action: 'search', keyword: keyword, videoId: videoId }), // videoId was missing
         });
         if (!response.ok) {
             const errorData = await response.json();
