@@ -398,7 +398,13 @@ footer {
     align-items: center;
     justify-content: center;
 }
-
+.keyword-display {
+    text-align: center;
+    color: var(--light-text-color);
+    margin-top: -1rem;
+    margin-bottom: 2rem;
+    font-style: italic;
+}
 footer p {
     margin: 0;
 }

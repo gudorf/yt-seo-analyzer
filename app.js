@@ -314,10 +314,11 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const userCardHTML = createCardHTML(userSnippet, true);
         const competitorCardsHTML = competitors.map(item => createCardHTML(item.snippet)).join('');
+
         competitorsContainer.innerHTML = `
             <div class="competitors-gallery">
-                <h3>Your Video vs. Top 5 for "${keyword}"</h3>
-                <div class="competitors-grid">
+                <h3>Your Video vs. Top 5 Competitors</h3>
+                <p class="keyword-display">Keyword: "${keyword}"</p> <div class="competitors-grid">
                     ${userCardHTML}
                     ${competitorCardsHTML}
                 </div>
