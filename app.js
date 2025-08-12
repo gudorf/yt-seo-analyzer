@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'search', keyword: keyword, videoId: videoId }), // videoId was missing
+            body: JSON.stringify({ action: 'search', keyword: keyword, videoId: videoId }),
         });
         if (!response.ok) {
             const errorData = await response.json();

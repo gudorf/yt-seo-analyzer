@@ -8,7 +8,7 @@ exports.handler = async function(event, context) {
         return { statusCode: 500, body: JSON.stringify({ error: 'API key is not configured.' }) };
     }
 
-   if (action === 'analyze') {
+    if (action === 'analyze') {
         try {
             const url = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails&key=${API_KEY}`;
             const response = await fetch(url);
@@ -16,26 +16,26 @@ exports.handler = async function(event, context) {
             if (data.items.length === 0) return { statusCode: 404, body: JSON.stringify({ error: 'Video not found.' }) };
             
             const item = data.items[0];
-            const tn = item.snippet.thumbnails; // Thumbnail helper
+            const tn = item.snippet.thumbnails;
             const requiredData = {
                 title: item.snippet.title,
                 description: item.snippet.description,
                 tags: item.snippet.tags,
                 duration: item.contentDetails.duration,
-                thumbnail: tn.high?.url || tn.medium?.url || tn.default?.url // Safely get best available thumbnail
+                thumbnail: tn.high?.url || tn.medium?.url || tn.default?.url
             };
             return { statusCode: 200, body: JSON.stringify(requiredData) };
         } catch (error) {
             return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
         }
     }
+
     if (action === 'search') {
         try {
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(keyword)}&type=video&maxResults=5&key=${API_KEY}`;
             const response = await fetch(url);
             const data = await response.json();
             
-            // This is the crucial part: return the array of items.
             const items = data.items;
             return { statusCode: 200, body: JSON.stringify(items) };
 
