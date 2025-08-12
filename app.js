@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         analyzeBtn.disabled = true;
         analyzeBtn.textContent = 'Analyzing...';
         resultsContainer.innerHTML = '<div class="loader"></div>';
-        competitorsContainer.innerHTML = ''; // Clear competitors
+        competitorsContainer.innerHTML = '';
 
         try {
             const videoData = await fetchVideoData(videoId);
@@ -150,14 +150,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 keyword = userData.title.split(' ').slice(0, 3).join(' ');
             }
 
-            console.log('Searching for keyword:', keyword); // <-- Add this line
-
             const competitors = await fetchCompetitors(keyword);
-            
-            console.log('Received competitors:', competitors); // <-- Add this line
-            
             displayCompetitors(userData, competitors, keyword);
-
         } catch (error) {
             competitorsContainer.innerHTML = `<p style="color: red; text-align: center;">Error: ${error.message}</p>`;
         } finally {
@@ -165,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             competeBtn.textContent = 'Competitive Analysis';
         }
     }
+
     async function fetchCompetitors(keyword) {
         const endpoint = `/.netlify/functions/youtube`;
         const response = await fetch(endpoint, {
@@ -304,19 +299,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayCompetitors(userData, competitors, keyword) {
-        const createCardHTML = (item, isUser = false) => {
-            const tn = item.snippet.thumbnails;
-            const thumbnailUrl = tn.high?.url || tn.medium?.url || tn.default?.url; // Safely get best available thumbnail
+        const createCardHTML = (itemSnippet, isUser = false) => {
+            const tn = itemSnippet.thumbnails;
+            const thumbnailUrl = tn.high?.url || tn.medium?.url || tn.default?.url;
+            const title = itemSnippet.title;
             
             return `
                 <div class="competitor-card ${isUser ? 'is-user' : ''}">
                     <img src="${thumbnailUrl}" alt="Video thumbnail">
-                    <div class="title">${item.snippet.title}</div>
+                    <div class="title">${title}</div>
                 </div>`;
         };
         
-        const userCardHTML = createCardHTML({ snippet: { title: userData.title, thumbnails: { high: { url: userData.thumbnail } } } }, true);
-        const competitorCardsHTML = competitors.map(item => createCardHTML(item)).join('');
+        const userCardHTML = createCardHTML({ title: userData.title, thumbnails: { high: { url: userData.thumbnail } } }, true);
+        const competitorCardsHTML = competitors.map(item => createCardHTML(item.snippet)).join('');
 
         competitorsContainer.innerHTML = `
             <div class="competitors-gallery">
@@ -326,7 +322,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${competitorCardsHTML}
                 </div>
             </div>`;
-    }
     }
 
     function analyzeTranscript(text) {
