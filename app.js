@@ -299,30 +299,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayCompetitors(userData, competitors, keyword) {
-        // This helper function creates the HTML for a single video card.
         const createCardHTML = (snippet, isUser = false) => {
             const tn = snippet.thumbnails;
-            // Safely get the best available thumbnail to prevent errors.
             const thumbnailUrl = tn.high?.url || tn.medium?.url || tn.default?.url;
-            
             return `
                 <div class="competitor-card ${isUser ? 'is-user' : ''}">
                     <img src="${thumbnailUrl}" alt="Video thumbnail">
                     <div class="title">${snippet.title}</div>
                 </div>`;
         };
-        
-        // Create the HTML for the user's video card.
         const userSnippet = {
             title: userData.title,
             thumbnails: { high: { url: userData.thumbnail } }
         };
         const userCardHTML = createCardHTML(userSnippet, true);
-
-        // Create the HTML for all the competitor video cards.
         const competitorCardsHTML = competitors.map(item => createCardHTML(item.snippet)).join('');
-
-        // Display the user's card first, followed by the competitors.
         competitorsContainer.innerHTML = `
             <div class="competitors-gallery">
                 <h3>Your Video vs. Top 5 for "${keyword}"</h3>
@@ -394,4 +385,4 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="light-text">Based on your transcript, consider using these terms:</p>
             <div>${pillsHTML}</div>`;
     }
-})
+});
