@@ -304,23 +304,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayCompetitors(userData, competitors, keyword) {
-        const userCard = { isUser: true, title: userData.title, thumbnail: userData.thumbnail };
-        const competitorCards = competitors.map(item => ({
-            isUser: false,
-            title: item.snippet.title,
-            thumbnail: item.snippet.thumbnails.high.url,
-        }));
-        const allCards = [userCard, ...competitorCards].sort(() => Math.random() - 0.5);
-        const cardsHTML = allCards.map(card => `
-            <div class="competitor-card ${card.isUser ? 'is-user' : ''}">
-                <img src="${card.thumbnail}" alt="Video thumbnail">
-                <div class="title">${card.title}</div>
-            </div>`).join('');
+        const createCardHTML = (item, isUser = false) => {
+            const tn = item.snippet.thumbnails;
+            const thumbnailUrl = tn.high?.url || tn.medium?.url || tn.default?.url; // Safely get best available thumbnail
+            
+            return `
+                <div class="competitor-card ${isUser ? 'is-user' : ''}">
+                    <img src="${thumbnailUrl}" alt="Video thumbnail">
+                    <div class="title">${item.snippet.title}</div>
+                </div>`;
+        };
+        
+        const userCardHTML = createCardHTML({ snippet: { title: userData.title, thumbnails: { high: { url: userData.thumbnail } } } }, true);
+        const competitorCardsHTML = competitors.map(item => createCardHTML(item)).join('');
+
         competitorsContainer.innerHTML = `
             <div class="competitors-gallery">
                 <h3>Top 5 search results for "${keyword}"</h3>
-                <div class="competitors-grid">${cardsHTML}</div>
+                <div class="competitors-grid">
+                    ${userCardHTML}
+                    ${competitorCardsHTML}
+                </div>
             </div>`;
+    }
     }
 
     function analyzeTranscript(text) {
