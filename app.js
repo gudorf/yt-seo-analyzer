@@ -326,15 +326,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function analyzeTranscript(text) {
-        const commonWords = new Set(['the', 'a', 'an', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'of', 'in', 'out', 'is', 'are', 'was', 'were', 'be', 'being', 'been', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how', 'so', 'also', 'about', 'like', 'just', 'gonna', 'really', 's']);
-        const words = text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(/\s+/);
+        // Expanded list of common words to ignore for better accuracy
+        const commonWords = new Set(['the', 'a', 'an', 'and', 'but', 'or', 'for', 'nor', 'on', 'at', 'to', 'from', 'by', 'of', 'in', 'out', 'is', 'are', 'was', 'were', 'be', 'being', 'been', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'its', 'our', 'their', 'this', 'that', 'these', 'those', 'what', 'which', 'who', 'whom', 'whose', 'where', 'when', 'why', 'how', 'so', 'also', 'about', 'like', 'just', 'gonna', 'really', 's', 'to', 'was', 'in', 'and', 'i', 'the', 'of', 'my', 'that', 'a', 'it', 'had', 'with', 'he', 'but', 'as', 'for', 'wasn', 't', 'know', 'would', 'didn', 'love', 'life', 'one', 'because', 'to', 'and', 'the', 'i', 'of', 'a', 'my', 'that', 'it', 'was', 'in', 'he', 'had', 'she', 'to', 'and', 'the', 'i', 'of', 'a', 'my', 'that', 'it', 'was', 'in', 'he', 'had', 'she', 'me', 'but', 'for', 'be', 'so', 'what', 'if', 'we', 'you', 'her', 'not', 'when', 'do', 'don', 'have', 'am', 'is', 'are', 'was', 'were', 'has', 'have', 'had', 'do', 'does', 'did']);
+        
+        const cleanedText = text.toLowerCase().replace(/(\r\n|\n|\r)/gm, " ").replace(/\[.*?\]/g, "");
+        const words = cleanedText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").split(/\s+/).filter(w => w.length > 2 && !commonWords.has(w));
+        
+        // --- 1. Analyze Single Keywords ---
         const wordFrequencies = {};
         for (const word of words) {
-            if (!commonWords.has(word) && word.length > 2) {
-                wordFrequencies[word] = (wordFrequencies[word] || 0) + 1;
-            }
+            wordFrequencies[word] = (wordFrequencies[word] || 0) + 1;
         }
-        return Object.keys(wordFrequencies).sort((a, b) => wordFrequencies[b] - wordFrequencies[a]).slice(0, 10);
+        const topSingleWords = Object.keys(wordFrequencies)
+            .sort((a, b) => wordFrequencies[b] - wordFrequencies[a])
+            .slice(0, 5); // Get top 5 single words
+
+        // --- 2. Analyze Two-Word Phrases (Bigrams) ---
+        const phraseFrequencies = {};
+        for (let i = 0; i < words.length - 1; i++) {
+            const phrase = `${words[i]} ${words[i+1]}`;
+            phraseFrequencies[phrase] = (phraseFrequencies[phrase] || 0) + 1;
+        }
+        const topPhrases = Object.keys(phraseFrequencies)
+            .filter(phrase => phraseFrequencies[phrase] > 1) // Only include phrases that appear more than once
+            .sort((a, b) => phraseFrequencies[b] - phraseFrequencies[a])
+            .slice(0, 5); // Get top 5 phrases
+
+        // --- 3. Combine and return the best results ---
+        const combinedResults = [...topPhrases, ...topSingleWords];
+        const uniqueResults = [...new Set(combinedResults)]; // Remove duplicates
+        
+        return uniqueResults.slice(0, 10);
     }
     
     function getAdvancedTranscriptAnalysis(text) {
